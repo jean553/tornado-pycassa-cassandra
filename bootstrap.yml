@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  become: yes
+
+  tasks:
+
+    - name: install pip packages
+      pip:
+        name="tox"
+        state=latest
+
+    - name: creating tox env
+      shell: tox -r -e {{ ansible_env.ENV_NAME }}
+      args:
+        chdir: "{{ ansible_env.APP_PATH }}"
+        creates: "{{ ansible_env.VIRTUAL_ENV_PATH }}"
+
+    - name: creating cassandra schema
+      environment: "{{ ansible_env }}"
+      shell: >
+        {{ ansible_env.VIRTUAL_ENV_PATH }}/bin/python reset.py
+      args:
+        chdir: "{{ ansible_env.APP_PATH }}/tornado-pycassa-cassandra"
+
+    - name: adding zshrc lines for developer comfort
+      lineinfile:
+        dest="/home/vagrant/.zshrc"
+        line="{{ item }}"
+        insertafter=EOF
+      with_items:
+        - "source {{ ansible_env.VIRTUAL_ENV_PATH }}/bin/activate"
+        - "cd {{ ansible_env.APP_PATH }}"
