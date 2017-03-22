@@ -1,0 +1,4 @@
+pycassa
+pytest
+tornado
+thrift==0.9.1
